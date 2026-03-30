@@ -60,11 +60,11 @@ pipeline {
                     publishHTML([
                         reportDir: 'htmlcov',
                         reportFiles: 'index.html',
-                        reportName: 'Code Coverage Report'
+                        reportName: 'Code Coverage Report',
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true,
+                        allowMissing: true
                     ])
-                    
-                    // Publish test results
-                    junit 'test-results.xml' || true
                 }
             }
         }
