@@ -5,6 +5,8 @@ pipeline {
         timestamps()
         timeout(time: 30, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '10'))
+        skipDefaultCheckout()
+        disableConcurrentBuilds()
     }
     
     environment {
@@ -17,7 +19,15 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo '🔄 Checking out code...'
-                checkout scm
+                sh '''
+                    # Clean workspace if it exists but isn't a git repo
+                    if [ -d '.git' ]; then
+                        git fetch origin main
+                        git reset --hard origin/main
+                    else
+                        git clone https://github.com/Ameya-Dikshit/Accest-Fitness.git .
+                    fi
+                '''
                 sh 'git log -1 --oneline'
             }
         }
