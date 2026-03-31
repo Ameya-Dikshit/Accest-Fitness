@@ -152,9 +152,6 @@ pipeline {
                 docker system prune -f 2>/dev/null || true
                 docker rm -f aceest-test 2>/dev/null || true
             '''
-            
-            // Always delete workspace after build
-            deleteDir()
         }
     }
 }
