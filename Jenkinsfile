@@ -27,8 +27,7 @@ pipeline {
                 echo '📦 Setting up Python environment...'
                 sh '''
                     python --version
-                    python -m venv venv
-                    . venv/bin/activate || . venv/Scripts/activate
+                    pip install --upgrade pip setuptools wheel
                     pip install -r requirements.txt
                 '''
             }
@@ -38,7 +37,6 @@ pipeline {
             steps {
                 echo '🔍 Running code quality checks...'
                 sh '''
-                    . venv/bin/activate || . venv/Scripts/activate
                     black --check app.py tests/ || true
                     flake8 app.py tests/ --max-line-length=120 || true
                     pylint app.py --disable=all --enable=E || true
@@ -50,7 +48,6 @@ pipeline {
             steps {
                 echo '✅ Running unit tests...'
                 sh '''
-                    . venv/bin/activate || . venv/Scripts/activate
                     pytest tests/ -v --cov=app --cov-report=xml --cov-report=html --tb=short
                 '''
             }
@@ -73,9 +70,13 @@ pipeline {
             steps {
                 echo '🐳 Building Docker image...'
                 sh '''
-                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                    docker images | grep ${IMAGE_NAME}
+                    # Ensure docker is accessible
+                    export PATH="/usr/bin:$PATH"
+                    
+                    # Try with docker directly, add sudo if needed
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} . || sudo docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest || sudo docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                    docker images | grep ${IMAGE_NAME} || sudo docker images | grep ${IMAGE_NAME}
                 '''
             }
         }
@@ -84,11 +85,14 @@ pipeline {
             steps {
                 echo '🧪 Testing Docker container...'
                 sh '''
+                    # Ensure docker is accessible
+                    export PATH="/usr/bin:$PATH"
+                    
                     # Remove old container if exists
-                    docker rm -f aceest-test || true
+                    docker rm -f aceest-test 2>/dev/null || sudo docker rm -f aceest-test 2>/dev/null || true
                     
                     # Run container
-                    docker run -d --name aceest-test -p 5001:5000 ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d --name aceest-test -p 5001:5000 ${IMAGE_NAME}:${IMAGE_TAG} || sudo docker run -d --name aceest-test -p 5001:5000 ${IMAGE_NAME}:${IMAGE_TAG}
                     
                     # Wait for startup
                     sleep 2
@@ -97,8 +101,8 @@ pipeline {
                     curl -f http://localhost:5001/health || exit 1
                     
                     # Clean up
-                    docker stop aceest-test
-                    docker rm aceest-test
+                    docker stop aceest-test 2>/dev/null || sudo docker stop aceest-test 2>/dev/null || true
+                    docker rm aceest-test 2>/dev/null || sudo docker rm aceest-test 2>/dev/null || true
                     
                     echo "✅ Docker container health check passed"
                 '''
@@ -124,8 +128,11 @@ pipeline {
             steps {
                 echo '📦 Archiving build artifacts...'
                 sh '''
+                    # Ensure docker is accessible
+                    export PATH="/usr/bin:$PATH"
+                    
                     # Save Docker image details
-                    docker inspect ${IMAGE_NAME}:${IMAGE_TAG} > docker-image-details.json || true
+                    docker inspect ${IMAGE_NAME}:${IMAGE_TAG} > docker-image-details.json || sudo docker inspect ${IMAGE_NAME}:${IMAGE_TAG} > docker-image-details.json || true
                     
                     # Save test results
                     ls -la htmlcov/ || true
@@ -151,8 +158,11 @@ pipeline {
         always {
             echo '🧹 Cleaning up...'
             sh '''
+                # Ensure docker is accessible
+                export PATH="/usr/bin:$PATH"
+                
                 # Clean up Docker resources
-                docker system prune -f || true
+                docker system prune -f || sudo docker system prune -f || true
             '''
             
             // Always delete workspace after build
