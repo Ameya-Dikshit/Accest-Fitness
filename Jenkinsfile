@@ -24,10 +24,8 @@ pipeline {
             }
         }
         // ...existing code...
-                        echo "Cloning repository..."
-                        git clone --depth=1 --branch main ${GIT_REPO} .
-                    fi
-                    git log -1 --oneline
+                        // Repository cloning handled by 'checkout scm' above
+                        git log -1 --oneline
                 '''
             }
         }
