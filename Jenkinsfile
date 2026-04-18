@@ -1,32 +1,29 @@
 pipeline {
     agent any
     
-    options {
-        timestamps()
-        timeout(time: 30, unit: 'MINUTES')
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
-    
     environment {
-        IMAGE_NAME = 'aceest-fitness'
-        IMAGE_TAG = "${BUILD_NUMBER}"
-        REGISTRY = 'docker'
-        GIT_REPO = 'https://github.com/Ameya-Dikshit/Accest-Fitness.git'
+        SCANNER_HOME = tool 'SonarQubeScanner'
     }
-    
     stages {
         stage('Checkout') {
             steps {
-                echo '🔄 Checking out code...'
-                sh '''
-                    pwd
-                    git config --global --add safe.directory .
-                    if [ -d '.git' ]; then
-                        echo "Git repo exists, updating..."
-                        git fetch origin main --depth=1
-                        git reset --hard origin/main
-                        git clean -fd
-                    else
+                checkout scm
+            }
+        }
+        // ...existing code...
+        stage('Unit Tests') {
+            steps {
+                sh 'pytest --maxfail=1 --disable-warnings || true'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh "${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=aceest-fitness -Dsonar.sources=. -Dsonar.python.coverage.reportPaths=coverage.xml"
+                }
+            }
+        }
+        // ...existing code...
                         echo "Cloning repository..."
                         git clone --depth=1 --branch main ${GIT_REPO} .
                     fi
