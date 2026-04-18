@@ -23,12 +23,7 @@ pipeline {
                 }
             }
         }
-        // ...existing code...
-                        // Repository cloning handled by 'checkout scm' above
-                        git log -1 --oneline
-                '''
-            }
-        }
+
         
         stage('Setup Python Environment') {
             steps {
