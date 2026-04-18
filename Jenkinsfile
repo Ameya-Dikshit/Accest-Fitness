@@ -163,6 +163,19 @@ pipeline {
             sh 'echo "Build #${BUILD_NUMBER} failed. Check logs for details."'
         }
         always {
+                stage('SonarQube Analysis') {
+                    environment {
+                        scannerHome = tool 'SonarQubeScanner'
+                    }
+                    steps {
+                        withSonarQubeEnv('SonarQube') {
+                            sh '''${scannerHome}/bin/sonar-scanner \
+                              -Dsonar.projectKey=aceest-fitness \
+                              -Dsonar.sources=. \
+                              -Dsonar.python.coverage.reportPaths=coverage.xml'''
+                        }
+                    }
+                }
             echo '🧹 Cleaning up...'
             sh '''
                 # Clean up Docker resources (ignore errors if docker not available)
