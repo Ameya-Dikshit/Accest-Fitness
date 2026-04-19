@@ -62,6 +62,7 @@ pipeline {
                     sh 'echo "Coverage report generated at: htmlcov/index.html"'
                 }
             }
+        }
         
         stage('Test Docker Container') {
             steps {
