@@ -134,28 +134,15 @@ pipeline {
     post {
         success {
             echo '✅ Pipeline succeeded!'
-            node('any') {
-                sh '''
-                    echo "Build #${BUILD_NUMBER} completed successfully"
-                    echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
-                '''
-            }
+            echo "Build #${BUILD_NUMBER} completed successfully"
+            echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
         }
         failure {
             echo '❌ Pipeline failed!'
-            node('any') {
-                sh 'echo "Build #${BUILD_NUMBER} failed. Check logs for details."'
-            }
+            echo "Build #${BUILD_NUMBER} failed. Check logs for details."
         }
         always {
             echo '🧹 Cleaning up...'
-            node('any') {
-                sh '''
-                    # Clean up Docker resources (ignore errors if docker not available)
-                    docker system prune -f 2>/dev/null || true
-                    docker rm -f aceest-test 2>/dev/null || true
-                '''
-            }
         }
     }
 }
