@@ -1,0 +1,137 @@
+---
+# BLUE-GREEN DEPLOYMENT STRATEGY
+# Blue Deployment (Stable/Current Version - v1.0.0)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-blue
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+    variant: blue
+    version: "1.0.0"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      variant: blue
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        variant: blue
+        version: "1.0.0"
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: aceest-fitness:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: aceest-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        volumeMounts:
+        - name: app-storage
+          mountPath: /app/data
+      volumes:
+      - name: app-storage
+        emptyDir: {}
+---
+# GREEN DEPLOYMENT (New/Canary Version - v1.1.0)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-green
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+    variant: green
+    version: "1.1.0"
+spec:
+  replicas: 0  # Initially disabled - activate for blue-green switch
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      variant: green
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        variant: green
+        version: "1.1.0"
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: aceest-fitness:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: aceest-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        volumeMounts:
+        - name: app-storage
+          mountPath: /app/data
+      volumes:
+      - name: app-storage
+        emptyDir: {}

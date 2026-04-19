@@ -1,0 +1,137 @@
+---
+# CANARY DEPLOYMENT STRATEGY
+# Canary Deployment - Gradual rollout with traffic splitting
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-canary
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+    variant: canary
+    version: "1.1.0"
+spec:
+  replicas: 1  # Start with 1 replica for canary
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      variant: canary
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        variant: canary
+        version: "1.1.0"
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: aceest-fitness:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: aceest-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        volumeMounts:
+        - name: app-storage
+          mountPath: /app/data
+      volumes:
+      - name: app-storage
+        emptyDir: {}
+---
+# Stable Deployment for Canary strategy
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-stable
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+    variant: stable
+    version: "1.0.0"
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      variant: stable
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        variant: stable
+        version: "1.0.0"
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: aceest-fitness:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: aceest-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        volumeMounts:
+        - name: app-storage
+          mountPath: /app/data
+      volumes:
+      - name: app-storage
+        emptyDir: {}

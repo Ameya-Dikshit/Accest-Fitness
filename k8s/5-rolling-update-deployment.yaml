@@ -1,0 +1,118 @@
+---
+# ROLLING UPDATE DEPLOYMENT STRATEGY
+# Standard rolling update - replace pods one by one
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-rolling
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+    deployment-strategy: rolling-update
+    version: "1.1.0"
+spec:
+  replicas: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2        # Allow 2 extra pods during update
+      maxUnavailable: 1  # Allow 1 pod to be unavailable
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      deployment-strategy: rolling-update
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        deployment-strategy: rolling-update
+        version: "1.1.0"
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: aceest-fitness:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: aceest-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 15"]
+        volumeMounts:
+        - name: app-storage
+          mountPath: /app/data
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: app-storage
+        emptyDir: {}
+---
+# HorizontalPodAutoscaler for automatic scaling during rolling updates
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: aceest-rolling-hpa
+  namespace: aceest-fitness
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: aceest-rolling
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 2
+        periodSeconds: 15
+      selectPolicy: Max

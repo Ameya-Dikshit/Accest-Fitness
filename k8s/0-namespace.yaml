@@ -1,0 +1,9 @@
+---
+# Namespace for ACEest Fitness application
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aceest-fitness
+  labels:
+    app: aceest-fitness
+    environment: production

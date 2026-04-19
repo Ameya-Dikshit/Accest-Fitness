@@ -1,0 +1,88 @@
+---
+# DEPLOYMENT ROLLBACK AND RECOVERY MECHANISMS
+# This manifest defines the resources for managing rollbacks
+
+# PodDisruptionBudget - Ensure minimum availability during operations
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: aceest-pdb
+  namespace: aceest-fitness
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: aceest-fitness
+---
+# NetworkPolicy - Control traffic between pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aceest-network-policy
+  namespace: aceest-fitness
+spec:
+  podSelector:
+    matchLabels:
+      app: aceest-fitness
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: aceest-fitness
+    - podSelector:
+        matchLabels:
+          app: aceest-fitness
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: aceest-fitness
+    - podSelector:
+        matchLabels:
+          app: aceest-fitness
+  - to:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 53  # DNS
+    - protocol: UDP
+      port: 53  # DNS
+---
+# ServiceMonitor for Prometheus monitoring
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-metrics
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+spec:
+  type: ClusterIP
+  ports:
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  selector:
+    app: aceest-fitness
+---
+# ResourceQuota - Limit resource usage per namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: aceest-quota
+  namespace: aceest-fitness
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"
+    pods: "50"
+  scopeSelector:
+    matchExpressions:
+    - operator: In
+      scopeName: PriorityClass
+      values: ["high", "medium", "low"]

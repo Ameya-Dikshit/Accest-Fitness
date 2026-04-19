@@ -1,0 +1,176 @@
+---
+# SHADOW DEPLOYMENT STRATEGY
+# New version runs in parallel, mirrors production traffic for testing
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-production
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+    traffic-type: shadow
+    tier: production
+    version: "1.0.0"
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      traffic-type: shadow
+      tier: production
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        traffic-type: shadow
+        tier: production
+        version: "1.0.0"
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: aceest-fitness:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: aceest-config
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: SHADOW_MODE
+          value: "false"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        volumeMounts:
+        - name: app-storage
+          mountPath: /app/data
+      volumes:
+      - name: app-storage
+        emptyDir: {}
+---
+# Shadow Deployment - mirrors traffic but doesn't serve production
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-shadow
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+    traffic-type: shadow
+    tier: shadow
+    version: "1.1.0"
+spec:
+  replicas: 2  # Shadow usually runs with fewer replicas
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aceest-fitness
+      traffic-type: shadow
+      tier: shadow
+  template:
+    metadata:
+      labels:
+        app: aceest-fitness
+        traffic-type: shadow
+        tier: shadow
+        version: "1.1.0"
+    spec:
+      containers:
+      - name: aceest-fitness
+        image: aceest-fitness:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: aceest-config
+        env:
+        - name: ENVIRONMENT
+          value: "shadow"
+        - name: SHADOW_MODE
+          value: "true"
+        - name: WRITE_OPERATIONS
+          value: "disabled"  # Shadow doesn't write to production DB
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        volumeMounts:
+        - name: app-storage
+          mountPath: /app/data
+      volumes:
+      - name: app-storage
+        emptyDir: {}
+---
+# Service for Production Traffic Only
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-shadow-service
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+    traffic-type: shadow
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 5000
+      protocol: TCP
+      name: http
+  selector:
+    app: aceest-fitness
+    traffic-type: shadow
+    tier: production

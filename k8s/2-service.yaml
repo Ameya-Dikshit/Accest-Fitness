@@ -1,0 +1,22 @@
+---
+# Service for ACEest Fitness - exposes the application
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-fitness-service
+  namespace: aceest-fitness
+  labels:
+    app: aceest-fitness
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 5000
+      protocol: TCP
+      name: http
+  selector:
+    app: aceest-fitness
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
