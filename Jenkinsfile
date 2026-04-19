@@ -2,7 +2,9 @@ pipeline {
     agent any
     
     environment {
-        SCANNER_HOME = tool 'SonarQubeScanner'
+        SCANNER_HOME = '/opt/sonarqube-scanner'
+        IMAGE_NAME = 'aceest-fitness'
+        IMAGE_TAG = 'latest'
     }
     stages {
         stage('Checkout') {
@@ -16,13 +18,14 @@ pipeline {
                 sh 'pytest --maxfail=1 --disable-warnings || true'
             }
         }
-        stage('SonarQube Analysis') {
+        // Disabled: SonarQube not configured in this environment
+        /* stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh "${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=aceest-fitness -Dsonar.sources=. -Dsonar.python.coverage.reportPaths=coverage.xml"
                 }
             }
-        }
+        } */
         
         stage('Setup Python Environment') {
             steps {
@@ -131,22 +134,28 @@ pipeline {
     post {
         success {
             echo '✅ Pipeline succeeded!'
-            sh '''
-                echo "Build #${BUILD_NUMBER} completed successfully"
-                echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
-            '''
+            node('any') {
+                sh '''
+                    echo "Build #${BUILD_NUMBER} completed successfully"
+                    echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                '''
+            }
         }
         failure {
             echo '❌ Pipeline failed!'
-            sh 'echo "Build #${BUILD_NUMBER} failed. Check logs for details."'
+            node('any') {
+                sh 'echo "Build #${BUILD_NUMBER} failed. Check logs for details."'
+            }
         }
         always {
             echo '🧹 Cleaning up...'
-            sh '''
-                # Clean up Docker resources (ignore errors if docker not available)
-                docker system prune -f 2>/dev/null || true
-                docker rm -f aceest-test 2>/dev/null || true
-            '''
+            node('any') {
+                sh '''
+                    # Clean up Docker resources (ignore errors if docker not available)
+                    docker system prune -f 2>/dev/null || true
+                    docker rm -f aceest-test 2>/dev/null || true
+                '''
+            }
         }
     }
 }
