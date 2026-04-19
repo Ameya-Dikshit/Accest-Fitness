@@ -60,60 +60,8 @@ pipeline {
                 always {
                     // Archive coverage artifacts
                     sh 'echo "Coverage report generated at: htmlcov/index.html"'
-                success {
-                    node {
-                        echo '✅ Pipeline succeeded!'
-                        sh '''
-        echo "Build #${BUILD_NUMBER} completed successfully"
-        echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
-                        '''
-                    }
                 }
-                failure {
-                    node {
-                        echo '❌ Pipeline failed!'
-                        sh '''
-        echo "Build #${BUILD_NUMBER} failed. Check logs for details."
-                        '''
-                    }
-                }
-                always {
-                    node {
-                        echo '🧹 Cleaning up...'
-                        sh '''
-        # Clean up Docker resources (ignore errors if docker not available)
-                    
-                    # Wait for container to initialize
-                        '''
-                    }
-                }
-                    sleep 5
-                    
-                    # Verify container is running
-                    if docker ps | grep aceest-test > /dev/null; then
-                        echo "✅ Container is running"
-                        
-                        # Check container logs for startup success
-                        LOGS=$(docker logs aceest-test 2>&1 | head -20)
-                        echo "Container logs: $LOGS"
-                        
-                        # Check if Flask app started (look for Listening or running indicator)
-                        if echo "$LOGS" | grep -E "(Listening|Running|WARNING)" > /dev/null; then
-                            echo "✅ Flask application started"
-                        fi
-                    else
-                        echo "❌ Container is not running"
-                        exit 1
-                    fi
-                    
-                    # Cleanup
-                    docker stop aceest-test || true
-                    docker rm aceest-test || true
-                    
-                    echo "✅ Container test completed successfully"
-                '''
             }
-        }
         
         stage('Test Docker Container') {
             steps {
