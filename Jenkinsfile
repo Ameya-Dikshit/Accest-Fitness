@@ -61,33 +61,33 @@ pipeline {
                 always {
                     // Archive coverage artifacts
                     sh 'echo "Coverage report generated at: htmlcov/index.html"'
+                success {
+                    node {
+                        echo '✅ Pipeline succeeded!'
+                        sh '''
+        echo "Build #${BUILD_NUMBER} completed successfully"
+        echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                        '''
+                    }
                 }
-            }
-        }
-        
-        stage('Build Docker Image') {
-            steps {
-                echo '🐳 Building Docker image...'
-                sh '''
-                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                    docker images | grep ${IMAGE_NAME}
-                '''
-            }
-        }
-        
-        stage('Test Docker Container') {
-            steps {
-                echo '🧪 Testing Docker container...'
-                sh '''
-                    # Remove old container if exists
-                    docker rm -f aceest-test 2>/dev/null || true
-                    
-                    # Run container
-                    CONTAINER_ID=$(docker run -d --name aceest-test -p 5001:5000 ${IMAGE_NAME}:${IMAGE_TAG})
-                    echo "Container started with ID: $CONTAINER_ID"
+                failure {
+                    node {
+                        echo '❌ Pipeline failed!'
+                        sh '''
+        echo "Build #${BUILD_NUMBER} failed. Check logs for details."
+                        '''
+                    }
+                }
+                always {
+                    node {
+                        echo '🧹 Cleaning up...'
+                        sh '''
+        # Clean up Docker resources (ignore errors if docker not available)
                     
                     # Wait for container to initialize
+                        '''
+                    }
+                }
                     sleep 5
                     
                     # Verify container is running
@@ -142,23 +142,29 @@ pipeline {
     
     post {
         success {
-            echo '✅ Pipeline succeeded!'
-            sh '''
-                echo "Build #${BUILD_NUMBER} completed successfully"
-                echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
-            '''
+            node {
+                echo '✅ Pipeline succeeded!'
+                sh '''
+                    echo "Build #${BUILD_NUMBER} completed successfully"
+                    echo "Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                '''
+            }
         }
         failure {
-            echo '❌ Pipeline failed!'
-            sh 'echo "Build #${BUILD_NUMBER} failed. Check logs for details."'
+            node {
+                echo '❌ Pipeline failed!'
+                sh 'echo "Build #${BUILD_NUMBER} failed. Check logs for details."'
+            }
         }
         always {
-            echo '🧹 Cleaning up...'
-            sh '''
-                # Clean up Docker resources (ignore errors if docker not available)
-                docker system prune -f 2>/dev/null || true
-                docker rm -f aceest-test 2>/dev/null || true
-            '''
+            node {
+                echo '🧹 Cleaning up...'
+                sh '''
+                    # Clean up Docker resources (ignore errors if docker not available)
+                    docker system prune -f 2>/dev/null || true
+                    docker rm -f aceest-test 2>/dev/null || true
+                '''
+            }
         }
     }
 }
