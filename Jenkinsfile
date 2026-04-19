@@ -130,7 +130,7 @@ pipeline {
     
     post {
         success {
-            node {
+            node('master') {
                 echo '✅ Pipeline succeeded!'
                 sh '''
                     echo "Build #${BUILD_NUMBER} completed successfully"
@@ -139,13 +139,13 @@ pipeline {
             }
         }
         failure {
-            node {
+            node('master') {
                 echo '❌ Pipeline failed!'
                 sh 'echo "Build #${BUILD_NUMBER} failed. Check logs for details."'
             }
         }
         always {
-            node {
+            node('master') {
                 echo '🧹 Cleaning up...'
                 sh '''
                     # Clean up Docker resources (ignore errors if docker not available)
