@@ -17,6 +17,12 @@ pipeline {
             steps {
                 echo '🐳 Building Docker image...'
                 sh '''
+                    if ! command -v docker >/dev/null 2>&1; then
+                        echo "⚠️ Docker not available on this agent"
+                        echo "To enable Docker builds, install Docker or use a Docker-enabled agent"
+                        exit 0
+                    fi
+                    
                     if [ -f Dockerfile ]; then
                         docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                         echo "✅ Docker image built successfully"
@@ -31,16 +37,16 @@ pipeline {
             steps {
                 echo '✅ Running unit tests...'
                 sh '''
-                    # Run tests in Python container if Dockerfile exists
-                    if [ -f Dockerfile ]; then
-                        docker run --rm -v $(pwd):/app -w /app python:3.9 bash -c "pip install -q -r requirements.txt && pytest tests/ -v --tb=short || true"
+                    # Try Docker first, then fallback to Python directly
+                    if command -v docker >/dev/null 2>&1 && [ -f Dockerfile ]; then
+                        docker run --rm -v $(pwd):/app -w /app python:3.9 bash -c "pip install -q -r requirements.txt && pytest tests/ -v --tb=short" || true
+                    elif command -v pytest >/dev/null 2>&1; then
+                        pytest tests/ -v --tb=short || true
+                    elif command -v python3 >/dev/null 2>&1; then
+                        python3 -m pip install -q -r requirements.txt 2>/dev/null || pip install -q -r requirements.txt || true
+                        python3 -m pytest tests/ -v --tb=short || true
                     else
-                        # Fallback: try to run directly
-                        if command -v pytest >/dev/null 2>&1; then
-                            pytest tests/ -v --tb=short || true
-                        else
-                            echo "⚠️ pytest not available - skipping"
-                        fi
+                        echo "⚠️ pytest, python3, or docker not available - skipping tests"
                     fi
                 '''
             }
@@ -50,10 +56,14 @@ pipeline {
             steps {
                 echo '🔍 Running code quality checks...'
                 sh '''
-                    if [ -f Dockerfile ]; then
+                    if command -v docker >/dev/null 2>&1 && [ -f Dockerfile ]; then
                         docker run --rm -v $(pwd):/app -w /app python:3.9 bash -c "pip install -q black flake8 pylint && black --check app.py tests/ || true && flake8 app.py tests/ --max-line-length=120 || true" || true
+                    elif command -v python3 >/dev/null 2>&1; then
+                        python3 -m pip install -q black flake8 2>/dev/null || pip install -q black flake8 || true
+                        python3 -m black --check app.py tests/ || true
+                        python3 -m flake8 app.py tests/ --max-line-length=120 || true
                     else
-                        echo "⚠️ Dockerfile not found - skipping"
+                        echo "⚠️ Code quality tools not available"
                     fi
                 '''
             }
@@ -63,6 +73,11 @@ pipeline {
             steps {
                 echo '🧪 Testing Docker container...'
                 sh '''
+                    if ! command -v docker >/dev/null 2>&1; then
+                        echo "⚠️ Docker not available - skipping container test"
+                        exit 0
+                    fi
+                    
                     if docker image inspect ${IMAGE_NAME}:${IMAGE_TAG} >/dev/null 2>&1; then
                         # Remove old container if exists
                         docker rm -f aceest-test 2>/dev/null || true
@@ -97,6 +112,11 @@ pipeline {
             steps {
                 echo '🔒 Running security scan...'
                 sh '''
+                    if ! command -v docker >/dev/null 2>&1; then
+                        echo "⚠️ Docker not available - skipping security scan"
+                        exit 0
+                    fi
+                    
                     if docker image inspect ${IMAGE_NAME}:${IMAGE_TAG} >/dev/null 2>&1; then
                         echo "Scanning Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
                         
