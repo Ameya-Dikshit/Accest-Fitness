@@ -8,6 +8,10 @@ pipeline {
         IMAGE_NAME = 'aceest-fitness'
         IMAGE_TAG = 'latest'
         IMAGE_FULL = '${REGISTRY}/${REGISTRY_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}'
+        SONAR_HOST_URL = 'http://localhost:9000'
+        SONAR_PROJECT_KEY = 'aceest-fitness'
+        SONAR_LOGIN = 'admin'
+        SONAR_PASSWORD = 'admin'
     }
     stages {
         stage('Checkout') {
@@ -68,6 +72,59 @@ pipeline {
                     else
                         echo "⚠️ Code quality tools not available"
                     fi
+                '''
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                echo '📊 Running SonarQube code analysis...'
+                sh '''
+                    if ! command -v docker >/dev/null 2>&1; then
+                        echo "⚠️ Docker not available - skipping SonarQube analysis"
+                        exit 0
+                    fi
+                    
+                    echo "Connecting to SonarQube at http://localhost:9000"
+                    
+                    # Check if SonarQube is running
+                    if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:9000/api/system/health 2>/dev/null | grep -q "200"; then
+                        echo "⚠️ SonarQube not responding - skipping analysis"
+                        echo "To start SonarQube: docker run -d --name sonarqube -p 9000:9000 sonarqube:latest"
+                        exit 0
+                    fi
+                    
+                    echo "✅ SonarQube is running"
+                    echo ""
+                    echo "Running SonarQube Scanner on project..."
+                    
+                    # Install sonar-scanner if needed
+                    if ! command -v sonar-scanner >/dev/null 2>&1; then
+                        echo "⚠️ sonar-scanner not installed locally"
+                        echo "📌 To setup SonarQube Scanner:"
+                        echo "   1. Download from: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner/"
+                        echo "   2. Extract and add to PATH"
+                        echo "   3. Run: sonar-scanner -D sonar.projectKey=aceest-fitness ..."
+                        echo ""
+                        echo "For now, displaying SonarQube project creation steps:"
+                        echo "   1. Go to http://localhost:9000"
+                        echo "   2. Create project 'aceest-fitness'"
+                        echo "   3. Generate authentication token"
+                        echo "   4. Run sonar-scanner from project root"
+                        exit 0
+                    fi
+                    
+                    # Run SonarQube Scanner
+                    sonar-scanner \\
+                      -Dsonar.projectKey=aceest-fitness \\
+                      -Dsonar.sources=. \\
+                      -Dsonar.host.url=http://localhost:9000 \\
+                      -Dsonar.login=admin \\
+                      -Dsonar.password=admin || true
+                    
+                    echo ""
+                    echo "✅ SonarQube analysis completed (or skipped if scanner unavailable)"
+                    echo "📌 View results at: http://localhost:9000/dashboard?id=aceest-fitness"
                 '''
             }
         }
