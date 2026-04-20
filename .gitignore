@@ -53,6 +53,18 @@ coverage.xml
 *.log
 logs/
 
+# Documentation & Reports (not tracked, only code on git)
+*.md
+*.pdf
+*.docx
+*.doc
+
+# Helper & Script Files (not tracked)
+generate_*.py
+quickstart.bat
+quickstart.sh
+test_endpoint.py
+
 # OS
 .DS_Store
 Thumbs.db
