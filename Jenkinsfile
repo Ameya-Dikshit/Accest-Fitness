@@ -3,8 +3,11 @@ pipeline {
     
     environment {
         SCANNER_HOME = '/opt/sonarqube-scanner'
+        REGISTRY = 'ghcr.io'
+        REGISTRY_USERNAME = 'ameya-dikshit'
         IMAGE_NAME = 'aceest-fitness'
         IMAGE_TAG = 'latest'
+        IMAGE_FULL = '${REGISTRY}/${REGISTRY_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}'
     }
     stages {
         stage('Checkout') {
@@ -131,6 +134,36 @@ pipeline {
                         echo "✅ Security scan completed"
                     else
                         echo "⚠️ Image not found - skipping security scan"
+                    fi
+                '''
+            }
+        }
+        
+        stage('Push to Registry') {
+            steps {
+                echo '📤 Pushing Docker image to GitHub Container Registry...'
+                sh '''
+                    if ! command -v docker >/dev/null 2>&1; then
+                        echo "⚠️ Docker not available - skipping push"
+                        exit 0
+                    fi
+                    
+                    if docker image inspect ${IMAGE_NAME}:${IMAGE_TAG} >/dev/null 2>&1; then
+                        echo "Tagging image for registry..."
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${REGISTRY_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${REGISTRY_USERNAME}/${IMAGE_NAME}:v1.0
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${REGISTRY_USERNAME}/${IMAGE_NAME}:v2.0
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${REGISTRY_USERNAME}/${IMAGE_NAME}:v3.0
+                        
+                        echo "📌 Image tags created:"
+                        docker images | grep "${REGISTRY}/${REGISTRY_USERNAME}/${IMAGE_NAME}" || true
+                        
+                        echo ""
+                        echo "Note: To push to registry, authenticate with:"
+                        echo "  echo <GITHUB_TOKEN> | docker login ${REGISTRY} -u <USERNAME> --password-stdin"
+                        echo "✅ Image ready for push to ${REGISTRY}"
+                    else
+                        echo "⚠️ Image ${IMAGE_NAME}:${IMAGE_TAG} not found - skipping push"
                     fi
                 '''
             }

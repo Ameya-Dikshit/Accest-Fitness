@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: aceest-fitness
-        image: aceest-fitness:latest
+        image: ghcr.io/ameya-dikshit/aceest-fitness:v1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
@@ -109,7 +109,7 @@ spec:
     spec:
       containers:
       - name: aceest-fitness
-        image: aceest-fitness:latest
+        image: ghcr.io/ameya-dikshit/aceest-fitness:v2.0
         imagePullPolicy: Always
         ports:
         - containerPort: 5000

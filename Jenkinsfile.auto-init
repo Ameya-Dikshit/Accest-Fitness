@@ -1,0 +1,38 @@
+#!/bin/bash
+# This script handles repository initialization for Jenkins
+# Place this in the workspace before running the actual Jenkinsfile
+
+set -e
+
+WORKSPACE="${1:-.}"
+GIT_REPO="https://github.com/Ameya-Dikshit/Accest-Fitness.git"
+
+cd "$WORKSPACE"
+
+echo "==================================="
+echo "Auto-initializing Git Repository"
+echo "==================================="
+
+# Remove corrupted git directory if it exists but is invalid
+if [ -d '.git' ]; then
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "Invalid .git directory found, removing..."
+        rm -rf .git
+    fi
+fi
+
+# Clone if needed
+if [ ! -d '.git' ]; then
+    echo "Cloning repository from $GIT_REPO..."
+    git clone --depth=1 --branch main "$GIT_REPO" .
+else
+    echo "Updating existing repository..."
+    git fetch origin main --depth=1
+    git reset --hard origin/main
+    git clean -fd
+fi
+
+echo "Repository initialized successfully"
+git log -1 --oneline
+
+exec "$0" "$@"
