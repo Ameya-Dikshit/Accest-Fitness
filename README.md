@@ -1,18 +1,15 @@
 # ACEest Fitness - DevOps CI/CD Pipeline
 
-This is a production-ready fitness management system built with Flask REST API. The project demonstrates a complete DevOps transformation journey from a simple application to a fully automated, containerized, and orchestrated system with continuous integration and deployment.
+This is a fitness management system built with Flask REST API. The project demonstrates a complete DevOps transformation journey from a simple application to a fully automated, containerized, and orchestrated system with continuous integration and deployment.
 
 ## Assignment 1: Application Development
 We developed a Flask REST API for fitness management with 18 endpoints covering client management, workout tracking, progress monitoring, and metrics recording. The system uses SQLite3 database and includes 34 comprehensive test cases achieving 50% code coverage. The application was built following industry best practices with proper version control and modular code structure.
 
 ## Assignment 2: DevOps Transformation
-We transformed the application into a production-grade system by containerizing it with Docker, setting up an automated 13-stage CI/CD pipeline using Jenkins, deploying to Kubernetes with 5 different deployment strategies, integrating SonarQube for continuous code quality analysis, and pushing Docker images to GitHub Container Registry. We implemented zero-downtime deployments and verified all deployment strategies work seamlessly.
+We transformed the application into a system by containerizing it with Docker, setting up an automated 13-stage CI/CD pipeline using Jenkins, deploying to Kubernetes with 5 different deployment strategies, integrating SonarQube for continuous code quality analysis, and pushing Docker images to GitHub Container Registry. We implemented zero-downtime deployments and verified all deployment strategies work seamlessly.
 
 ## Knowledge Gained
 We learned how to build scalable infrastructure as code, automate testing and deployment pipelines, implement multiple deployment strategies for different use cases, and monitor code quality throughout the development cycle. The key insight was understanding how DevOps bridges development and operations by automating everything from code commit to production deployment, reducing manual errors and enabling rapid iterations.
-
-## Tools & Technologies
-Python (Flask), Docker (containerization), Kubernetes (orchestration), Jenkins (CI/CD automation), SonarQube (code quality), GitHub Container Registry (image storage), Git (version control), and Trivy (security scanning). These tools work together to create an automated pipeline that handles testing, building, scanning, and deploying the application.
 
 ## Key Achievements
 - Pylint score of 10.00/10 with Black-formatted code
@@ -22,32 +19,55 @@ Python (Flask), Docker (containerization), Kubernetes (orchestration), Jenkins (
 - 4 Docker images pushed to registry with proper versioning
 - Complete security scanning and code quality gates
 
-**Repository:** https://github.com/Ameya-Dikshit/Accest-Fitness | **Status:** ✅ Production Ready | **Grade:** A (95%+)
+## Tools & Technologies
+
+| Category | Technology |
+|----------|------------|
+| Language | Python |
+| Framework | Flask |
+| Database | SQLite3 |
+| Containerization | Docker |
+| Orchestration | Kubernetes |
+| CI/CD | Jenkins |
+| Code Quality | SonarQube |
+| Registry | GitHub Container Registry |
+| Security | Trivy |
+| Version Control | Git/GitHub |
 # ACEest Fitness - DevOps CI/CD Pipeline
 
-## What We Did
+This is a fitness management system built with Flask REST API. The project demonstrates a complete DevOps transformation journey from a simple application to a fully automated, containerized, and orchestrated system with continuous integration and deployment.
 
-### Assignment 1: Application Development
-- Built Flask REST API with 18 endpoints for fitness management
-- Created SQLite3 database with 4 tables (clients, workouts, progress, metrics)
-- Implemented 34 test cases with 50% code coverage
-- Established Git version control with structured commits
+## Assignment 1: Application Development
+We developed a Flask REST API for fitness management with 18 endpoints covering client management, workout tracking, progress monitoring, and metrics recording. The system uses SQLite3 database and includes 34 comprehensive test cases achieving 50% code coverage. The application was built following industry best practices with proper version control and modular code structure.
 
-### Assignment 2: DevOps CI/CD Implementation
-- Containerized application with Docker (multi-stage build)
-- Created Jenkins pipeline (13 stages): Checkout → Build → Test → Quality → Security → SonarQube → Registry Push → Deploy → Health Check → Blue-Green Switch
-- Deployed to Kubernetes with 5 deployment strategies (Blue-Green, Canary, Rolling, A/B Testing, Shadow)
-- Integrated SonarQube for continuous code quality analysis
-- Verified zero-downtime deployment
-- Pushed Docker images to GitHub Container Registry (GHCR)
+## Assignment 2: DevOps Transformation
+We transformed the application into a system by containerizing it with Docker, setting up an automated 13-stage CI/CD pipeline using Jenkins, deploying to Kubernetes with 5 different deployment strategies, integrating SonarQube for continuous code quality analysis, and pushing Docker images to GitHub Container Registry. We implemented zero-downtime deployments and verified all deployment strategies work seamlessly.
 
-## Our Software
+## Knowledge Gained
+We learned how to build scalable infrastructure as code, automate testing and deployment pipelines, implement multiple deployment strategies for different use cases, and monitor code quality throughout the development cycle. The key insight was understanding how DevOps bridges development and operations by automating everything from code commit to production deployment, reducing manual errors and enabling rapid iterations.
 
-**ACEest Fitness & Gym Management System**
-- REST API for fitness client management and workout tracking
-- Features: client profiles, workout logging, progress tracking, body metrics
-- Language: Python (Flask)
-- Database: SQLite3
+## Key Achievements
+- Pylint score of 10.00/10 with Black-formatted code
+- 5 deployment strategies successfully deployed and tested
+- Zero-downtime deployment verified with Blue-Green switching
+- Fully automated 13-stage pipeline from code commit to production
+- 4 Docker images pushed to registry with proper versioning
+- Complete security scanning and code quality gates
+
+## Tools & Technologies
+
+| Category | Technology |
+|----------|------------|
+| Language | Python |
+| Framework | Flask |
+| Database | SQLite3 |
+| Containerization | Docker |
+| Orchestration | Kubernetes |
+| CI/CD | Jenkins |
+| Code Quality | SonarQube |
+| Registry | GitHub Container Registry |
+| Security | Trivy |
+| Version Control | Git/GitHub |
 - Status: Production-ready with comprehensive testing
 
 ## What We Migrated
