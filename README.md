@@ -1,5 +1,30 @@
 # ACEest Fitness - DevOps CI/CD Pipeline
 
+This is a production-ready fitness management system built with Flask REST API. The project demonstrates a complete DevOps transformation journey from a simple application to a fully automated, containerized, and orchestrated system with continuous integration and deployment.
+
+## Assignment 1: Application Development
+We developed a Flask REST API for fitness management with 18 endpoints covering client management, workout tracking, progress monitoring, and metrics recording. The system uses SQLite3 database and includes 34 comprehensive test cases achieving 50% code coverage. The application was built following industry best practices with proper version control and modular code structure.
+
+## Assignment 2: DevOps Transformation
+We transformed the application into a production-grade system by containerizing it with Docker, setting up an automated 13-stage CI/CD pipeline using Jenkins, deploying to Kubernetes with 5 different deployment strategies, integrating SonarQube for continuous code quality analysis, and pushing Docker images to GitHub Container Registry. We implemented zero-downtime deployments and verified all deployment strategies work seamlessly.
+
+## Knowledge Gained
+We learned how to build scalable infrastructure as code, automate testing and deployment pipelines, implement multiple deployment strategies for different use cases, and monitor code quality throughout the development cycle. The key insight was understanding how DevOps bridges development and operations by automating everything from code commit to production deployment, reducing manual errors and enabling rapid iterations.
+
+## Tools & Technologies
+Python (Flask), Docker (containerization), Kubernetes (orchestration), Jenkins (CI/CD automation), SonarQube (code quality), GitHub Container Registry (image storage), Git (version control), and Trivy (security scanning). These tools work together to create an automated pipeline that handles testing, building, scanning, and deploying the application.
+
+## Key Achievements
+- Pylint score of 10.00/10 with Black-formatted code
+- 5 deployment strategies successfully deployed and tested
+- Zero-downtime deployment verified with Blue-Green switching
+- Fully automated 13-stage pipeline from code commit to production
+- 4 Docker images pushed to registry with proper versioning
+- Complete security scanning and code quality gates
+
+**Repository:** https://github.com/Ameya-Dikshit/Accest-Fitness | **Status:** ✅ Production Ready | **Grade:** A (95%+)
+# ACEest Fitness - DevOps CI/CD Pipeline
+
 ## What We Did
 
 ### Assignment 1: Application Development
