@@ -55,6 +55,7 @@ logs/
 
 # Documentation & Reports (not tracked, only code on git)
 *.md
+!README.md
 *.pdf
 *.docx
 *.doc
