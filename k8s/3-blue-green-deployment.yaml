@@ -30,8 +30,8 @@ spec:
     spec:
       containers:
       - name: aceest-fitness
-        image: ghcr.io/ameya-dikshit/aceest-fitness:v1.0
-        imagePullPolicy: Always
+        image: aceest-fitness:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
           name: http
@@ -98,8 +98,8 @@ spec:
     spec:
       containers:
       - name: aceest-fitness
-        image: ghcr.io/ameya-dikshit/aceest-fitness:v2.0
-        imagePullPolicy: Always
+        image: aceest-fitness:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
           name: http
